@@ -1,16 +1,48 @@
-import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams, Link, useHistory } from 'react-router-dom'
+import Spinner from './Spinner'
 
-function AlbumView() {
+const ArtistView = () => {
     const { id } = useParams()
-    const [ albumData, setalbumData ] = useState([])
+    const navigate = useHistory()
+    const [ artistData, setArtistData ] = useState([])
+    
+    useEffect(() => {
+        const API_URL = 'https://itunes.apple.com/search?term='
+        const fetchData = async () => {
+            const response = await fetch(API_URL)
+            const resData = await response.json()
+            setArtistData(resData.results)
+        }
+        fetchData()
+    }, [id])
+
+    const allAlbums = artistData.filter(entity => entity.collectionType === 'Album')
+    .map((album, i) => {
+        return (
+            <div key={i}>
+                <Link to={`/album/${album.collectionId}`}>
+                    <p>{album.collectionName}</p>
+                </Link>
+            </div>)
+        })
+
+    const navButtons = () => {
+        return (
+            <div>
+                <button onClick={() => {navigate.push('/')}}>Home</button> |
+                <button onClick={() => {navigate.goBack()}}>Back</button>
+            </div>
+        )
+    }
 
     return (
         <div>
-            <h2>The id passed was: {id}</h2>
-            <p>Album Data Goes Here!</p>
+            {artistData.length > 0 ? <h2>{artistData[0].artistName}</h2> : <Spinner />}
+            {navButtons()}
+            {allAlbums}
         </div>
     )
 }
 
-export default AlbumView
+export default ArtistView
